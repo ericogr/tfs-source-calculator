@@ -8,7 +8,7 @@ class SumElements {
   process(element) {
     if (element.isFile()) {
       this._Files +=  1;
-      this._Size += element.getSize() || 0;
+      this._Size += element.getSize();
     }
     else {
       this._Folders += 1;

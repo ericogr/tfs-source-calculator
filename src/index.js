@@ -4,13 +4,14 @@ let Q = require("q");
 let vsts = require('vso-node-api');
 let Element = require('./element').Element;
 let SumElements = require('./sumElements').SumElements;
+let SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
+
+const DEFAULT_TFS_URL = 'http://localhost:8080/tfs/DefaultCollection';
+const DEFAULT_TFS_PROJECT = 'Xpto';
 const rl = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout
 });
-
-const DEFAULT_TFS_URL = 'http://localhost:8080/tfs/DefaultCollection';
-const DEFAULT_TFS_PROJECT = 'Xpto';
 
 function createRequest(path = '/') {
   return {
@@ -72,25 +73,32 @@ askUsername()
   })
   .spread((username, password, collectionUrl, project, path) => {
     let handler = vsts.getNtlmHandler(username, password);
+
+    console.info('connecting...');
     let connection = new vsts.WebApi(collectionUrl, handler);
     let req = createRequest(path);
+
+    console.info('getting data...');
     return connection.getTfvcApi().getItemsBatch(req, project);
   })
   .spread((sources) => {
-    let sumElements = new SumElements();
-
     console.info('processing...');
+
+    let sumElements = new SumElements();
+    let sumElementsByFileTypes = new SumElementsByFileTypes();
 
     sources.forEach((source) => {
       let element = new Element(source.path, !source.isFolder, source.size, source.changeDate);
       sumElements.process(element);
+      sumElementsByFileTypes.process(element);
     });
 
-    return sumElements;
+    return [sumElements, sumElementsByFileTypes];
   })
-  .then((ret) => {
+  .spread((sumElements, sumElementsByFileTypes) => {
     console.info("----------------------------");
-    console.info(ret);
+    console.info(sumElements.toString());
+    console.info(sumElementsByFileTypes.toString());
     console.info("----------------------------");
   })
   .catch((err) => {

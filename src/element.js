@@ -17,7 +17,7 @@ class Element {
   }
 
   getSize() {
-    return this._Size;
+    return this._Size || 0;
   }
 
   getDate() {
