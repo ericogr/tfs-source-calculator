@@ -1,17 +1,33 @@
 "use strict";
 
-let Q = require("q");
+let fs = require('fs');
+let Q = require('q');
 let vsts = require('vso-node-api');
 let Element = require('./element').Element;
 let SumElements = require('./sumElements').SumElements;
 let SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
 
+const CONFIG_FILENAME = '.config.json';
 const DEFAULT_TFS_URL = 'http://localhost:8080/tfs/DefaultCollection';
 const DEFAULT_TFS_PROJECT = 'Xpto';
 const rl = require('readline').createInterface({
   input: process.stdin,
   output: process.stdout
 });
+
+function readConfiguration() {
+  let defer = Q.defer();
+
+  fs.readFile(CONFIG_FILENAME, {'encoding': 'utf8', 'flag': 'r'}, (err, data) => {
+    if (err) {
+      return defer.reject(err);
+    }
+
+    return defer.resolve(JSON.parse(data));
+  });
+
+  return defer.promise;
+}
 
 function createRequest(path = '/') {
   return {
@@ -38,48 +54,77 @@ function ask(question, defaultValue = '') {
   return defer.promise;
 }
 
-function askUsername() {
-  return ask('Username: ');
+function askUsername(defaultValue) {
+  return ask(`Username [${defaultValue}]: `, defaultValue);
 }
 
-function askPassword() {
-  return ask('Password: ');
+function askPassword(defaultValue) {
+  return ask(`Password [${defaultValue}]: `, defaultValue);
 }
 
-function askTfsUrl() {
-  return ask(`TFS URL [${DEFAULT_TFS_URL}]: `, DEFAULT_TFS_URL);
+function askTfsUrl(defaultValue) {
+  return ask(`TFS URL [${defaultValue}]: `, defaultValue);
 }
 
-function askProject() {
-  return ask(`Project [${DEFAULT_TFS_PROJECT}]: `, DEFAULT_TFS_PROJECT);
+function askProject(defaultValue) {
+  return ask(`Project [${defaultValue}]: `, defaultValue);
 }
 
-function askPath() {
-  return ask(`Path [\\]: `, '\\');
+function askPath(defaultValue) {
+  return ask(`Path [${defaultValue}]: `, defaultValue);
 }
 
-askUsername()
-  .then((username) => {
-    return [username, askPassword()];
+readConfiguration()
+  .then((configuration) => {
+    console.log(configuration);
+    return askUsername(configuration.username)
+      .then((username) => {
+        configuration.username = username;
+
+        return configuration;
+      });
   })
-  .spread((username, password) => {
-    return [username, password, askTfsUrl()];
+  .then((configuration) => {
+    return askPassword(configuration.password)
+      .then((password) => {
+        configuration.password = password;
+
+        return configuration;
+      });
   })
-  .spread((username, password, collectionUrl) => {
-    return [username, password, collectionUrl, askProject()];
+  .then((configuration) => {
+    return askTfsUrl(configuration.url)
+      .then((url) => {
+        configuration.url = url;
+
+        return configuration;
+      });
   })
-  .spread((username, password, collectionUrl, project) => {
-    return [username, password, collectionUrl, project, askPath()];
+  .then((configuration) => {
+    return askProject(configuration.project)
+      .then((project) => {
+        configuration.project = project;
+
+        return configuration;
+      });
   })
-  .spread((username, password, collectionUrl, project, path) => {
-    let handler = vsts.getNtlmHandler(username, password);
+  .then((configuration) => {
+    return askPath(configuration.path)
+      .then((path) => {
+        configuration.path = path;
+
+        return configuration;
+      });
+  })
+  .then((configuration) => {
+    let handler = vsts.getNtlmHandler(configuration.username, configuration.password);
 
     console.info('connecting...');
-    let connection = new vsts.WebApi(collectionUrl, handler);
-    let req = createRequest(path);
+    let connection = new vsts.WebApi(configuration.url, handler);
+    let req = createRequest(configuration.path);
 
     console.info('getting data...');
-    return connection.getTfvcApi().getItemsBatch(req, project);
+    return connection.getTfvcApi().getItemsBatch(req, configuration.project);
   })
   .spread((sources) => {
     console.info('processing...');
