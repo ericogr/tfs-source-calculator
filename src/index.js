@@ -15,6 +15,21 @@ const rl = require('readline').createInterface({
   output: process.stdout
 });
 
+function saveConfiguration(configuration) {
+  let defer = Q.defer();
+  let data = JSON.stringify(configuration);
+
+  fs.writeFile(CONFIG_FILENAME, data, (err) => {
+    if (err) {
+      return defer.reject(err);
+    }
+
+    return defer.resolve(configuration);
+  });
+
+  return defer.promise;
+}
+
 function readConfiguration() {
   let defer = Q.defer();
 
@@ -76,7 +91,6 @@ function askPath(defaultValue) {
 
 readConfiguration()
   .then((configuration) => {
-    console.log(configuration);
     return askUsername(configuration.username)
       .then((username) => {
         configuration.username = username;
@@ -117,6 +131,11 @@ readConfiguration()
       });
   })
   .then((configuration) => {
+    return saveConfiguration(configuration);
+  })
+  .then((configuration) => {
+    console.log(configuration);
+    console.log('-----------------------');
     let handler = vsts.getNtlmHandler(configuration.username, configuration.password);
 
     console.info('connecting...');
