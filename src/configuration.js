@@ -5,11 +5,14 @@ const Q = require('q');
 
 const CONFIG_FILENAME = '/home/erico/.tfs-source-calculator/config.json';
 const DEFAULT_CONFIG = {
-  'url': 'http://localhost:8080/tfs/DefaultCollection',
+  'connection': {
+    'authenticationType': 'Ntlm',
+    'url': 'http://localhost:8080/tfs/DefaultCollection',
+    'username': '',
+    'password': ''
+  },
   'project': 'xpto',
-  'path': '/',
-  'username': '',
-  'password': ''
+  'path': '/'
 };
 
 module.exports.read = function() {

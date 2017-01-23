@@ -18,14 +18,6 @@ function ask(question, defaultValue = '') {
   return defer.promise;
 }
 
-function askUsername(defaultValue) {
-  return ask(`Username [${defaultValue}]: `, defaultValue);
-}
-
-function askPassword(defaultValue) {
-  return ask(`Password [${defaultValue}]: `, defaultValue);
-}
-
 function askTfsUrl(defaultValue) {
   return ask(`TFS URL [${defaultValue}]: `, defaultValue);
 }
@@ -38,33 +30,15 @@ function askPath(defaultValue) {
   return ask(`Path [${defaultValue}]: `, defaultValue);
 }
 
-module.exports.askConfiguration = function(defaultConfiguration) {
-  return askUsername(defaultConfiguration.username)
-    .then((username) => {
-      let configuration = {};
-
-      configuration.username = username;
+module.exports.askConfiguration = function(configuration) {
+  return askTfsUrl(configuration.connection.url)
+    .then((url) => {
+      configuration.connection.url = url;
 
       return configuration;
     })
     .then((configuration) => {
-      return askPassword(defaultConfiguration.password)
-        .then((password) => {
-          configuration.password = password;
-
-          return configuration;
-        });
-    })
-    .then((configuration) => {
-      return askTfsUrl(defaultConfiguration.url)
-        .then((url) => {
-          configuration.url = url;
-
-          return configuration;
-        });
-    })
-    .then((configuration) => {
-      return askProject(defaultConfiguration.project)
+      return askProject(configuration.project)
         .then((project) => {
           configuration.project = project;
 
@@ -72,12 +46,12 @@ module.exports.askConfiguration = function(defaultConfiguration) {
         });
     })
     .then((configuration) => {
-      return askPath(defaultConfiguration.path)
+      return askPath(configuration.path)
         .then((path) => {
           configuration.path = path;
 
           rl.close();
-          
+
           return configuration;
         });
     });

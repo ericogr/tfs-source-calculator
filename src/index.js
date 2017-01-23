@@ -7,6 +7,7 @@ const vsts = require('vso-node-api');
 const Element = require('./element');
 const SumElements = require('./sumElements').SumElements;
 const SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
+const TfsConnectionConfiguration = require('./tfsConnectionConfiguration');
 const appConfig = require('./configuration');
 const ask = require('./askConfiguration');
 
@@ -31,8 +32,8 @@ appConfig.read()
     return appConfig.save(configuration);
   })
   .then((configuration) => {
-    let handler = vsts.getNtlmHandler(configuration.username, configuration.password);
-    let connection = new vsts.WebApi(configuration.url, handler);
+    let connectionConfiguration = new TfsConnectionConfiguration(configuration.connection);
+    let connection = connectionConfiguration.getConnection();
     let req = createRequest(configuration.path);
 
     console.info('processing...');
