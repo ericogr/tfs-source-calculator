@@ -29,4 +29,4 @@ class Element {
   }
 }
 
-module.exports.Element = Element;
+module.exports = Element;
