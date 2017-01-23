@@ -22,7 +22,11 @@ class SumElementsByFileTypes {
     let tokens = filename.split('.');
 
     if (tokens.length > 1) {
-      return tokens.pop().toLowerCase();
+      let extension = tokens.pop();
+
+      if (extension.indexOf('/') === -1) {
+        return extension.toLowerCase();
+      }
     }
 
     return '';
