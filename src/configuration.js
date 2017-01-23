@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
   'path': '/'
 };
 
-module.exports.read = function() {
+function read() {
   let defer = Q.defer();
 
   fs.readFile(CONFIG_FILENAME, {'encoding': 'utf8', 'flag': 'r'}, (err, data) => {
@@ -29,7 +29,7 @@ module.exports.read = function() {
   return defer.promise;
 }
 
-module.exports.save = function(configuration) {
+function save(configuration) {
   return makeConfigDirectory(CONFIG_FILENAME)
     .then(() => {
       return saveConfiguration(configuration);
@@ -61,3 +61,7 @@ function saveConfiguration(configuration) {
 
   return defer.promise;
 }
+
+module.exports.CONFIG_FILENAME = CONFIG_FILENAME;
+module.exports.save = save;
+module.exports.read = read;

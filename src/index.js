@@ -24,6 +24,12 @@ function createRequest(path = '/') {
   };
 }
 
+console.log(`
+    TFS Console Source Calculator
+    -----------------------------
+     -Change username, password and other parameters at ${appConfig.CONFIG_FILENAME}
+  `);
+
 appConfig.read()
   .then((defaultConfiguration) => {
     return ask.askConfiguration(defaultConfiguration);
