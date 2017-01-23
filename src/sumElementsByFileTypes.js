@@ -19,7 +19,13 @@ class SumElementsByFileTypes {
   }
 
   static getFileType(filename) {
-    return filename.toLowerCase().split('.').pop();
+    let tokens = filename.split('.');
+
+    if (tokens.length > 1) {
+      return tokens.pop().toLowerCase();
+    }
+
+    return '';
   }
 
   toString() {

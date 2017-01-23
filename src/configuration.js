@@ -12,7 +12,7 @@ const DEFAULT_CONFIG = {
     'password': ''
   },
   'project': 'xpto',
-  'path': '/'
+  'path': '$/'
 };
 
 function read() {
