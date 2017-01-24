@@ -1,24 +1,9 @@
 "use strict";
 
-const Element = require('./element');
-const SumElements = require('./sumElements').SumElements;
-const SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
 const TfsConnectionConfiguration = require('./tfsConnectionConfiguration');
+const Source = require('./source');
 const appConfig = require('./configuration');
 const ask = require('./askConfiguration');
-
-function createRequest(path = '/') {
-  return {
-      includeContentMetadata: true,
-      includeLinks: true,
-      itemDescriptors: [
-          {
-              path: path,
-              recursionLevel: 'Full'
-          }
-      ]
-  };
-}
 
 console.log(`
     TFS Console Source Calculator
@@ -34,29 +19,15 @@ appConfig.read()
     return appConfig.save(configuration);
   })
   .then((configuration) => {
-    let connectionConfiguration = new TfsConnectionConfiguration(configuration.connection);
-    let connection = connectionConfiguration.getConnection();
-    let req = createRequest(configuration.path);
+    let source = new Source(configuration.connection);
 
     console.info('processing...');
-    return connection.getTfvcApi().getItemsBatch(req, configuration.project);
+    return source.computeElements(configuration.project, configuration.path);
   })
-  .spread((sources) => {
-    let sumElements = new SumElements();
-    let sumElementsByFileTypes = new SumElementsByFileTypes();
-
-    sources.forEach((source) => {
-      let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
-      sumElements.process(element);
-      sumElementsByFileTypes.process(element);
-    });
-
-    return [sumElements, sumElementsByFileTypes];
-  })
-  .spread((sumElements, sumElementsByFileTypes) => {
+  .then((computedElements) => {
     console.info("----------------------------");
-    console.info(sumElements.toString());
-    console.info(sumElementsByFileTypes.toString());
+    console.info(computedElements.sumElements.toString());
+    console.info(computedElements.sumElementsByFileTypes.toString());
     console.info("----------------------------");
   })
   .catch((err) => {
