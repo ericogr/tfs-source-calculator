@@ -1,5 +1,6 @@
 class SumElements {
   constructor() {
+    this._Branches = 0;
     this._Files = 0;
     this._Folders = 0;
     this._Size = 0;
@@ -7,11 +8,16 @@ class SumElements {
 
   process(element) {
     if (element.isFile()) {
-      this._Files +=  1;
+      this._Files++;
       this._Size += element.getSize();
     }
-    else {
-      this._Folders += 1;
+
+    if (element.isFolder()) {
+      this._Folders++;
+    }
+
+    if (element.isBranch()) {
+      this._Branches++;
     }
   }
 
@@ -23,12 +29,16 @@ class SumElements {
     return this._Folders;
   }
 
+  getBranches() {
+    return this._Branches;
+  }
+
   getSize() {
     return this._Size;
   }
 
   toString() {
-    return `Files: ${this._Files}, Folders: ${this._Folders}, Size: ${this._Size}`;
+    return `Files: ${this._Files}, Folders: ${this._Folders}, Branches: ${this._Branches}, Size: ${this._Size}`;
   }
 }
 

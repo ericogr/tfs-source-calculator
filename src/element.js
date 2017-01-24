@@ -1,9 +1,10 @@
 "use strict";
 
 class Element {
-  constructor(path, isFile, size, date) {
+  constructor(path, isFolder, isBranch, size, date) {
     this._Path = path;
-    this._IsFile = isFile;
+    this._IsFolder = isFolder;
+    this._IsBranch = isBranch;
     this._Size = size;
     this._Date = date;
   }
@@ -13,7 +14,15 @@ class Element {
   }
 
   isFile() {
-    return this._IsFile;
+    return !this._IsFolder;
+  }
+
+  isFolder() {
+    return this._IsFolder;
+  }
+
+  isBranch() {
+    return this._IsBranch;
   }
 
   getSize() {
@@ -25,7 +34,7 @@ class Element {
   }
 
   toString() {
-    return `path: ${this._Path}, isFile: ${this._IsFile}, size: ${this._Size}, date: ${this._Date}`;
+    return `path: ${this._Path}, isFolder: ${this._IsFolder}, isBranch: ${this._IsBranch} size: ${this._Size}, date: ${this._Date}`;
   }
 }
 

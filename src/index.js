@@ -1,9 +1,5 @@
 "use strict";
 
-const npath = require('path');
-const fs = require('fs');
-const Q = require('q');
-const vsts = require('vso-node-api');
 const Element = require('./element');
 const SumElements = require('./sumElements').SumElements;
 const SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
@@ -50,7 +46,7 @@ appConfig.read()
     let sumElementsByFileTypes = new SumElementsByFileTypes();
 
     sources.forEach((source) => {
-      let element = new Element(source.path, !source.isFolder, source.size, source.changeDate);
+      let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
       sumElements.process(element);
       sumElementsByFileTypes.process(element);
     });
