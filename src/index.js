@@ -1,5 +1,6 @@
 "use strict";
 
+const zlib = require('zlib');
 const TfsConnectionConfiguration = require('./tfsConnectionConfiguration');
 const Source = require('./source');
 const appConfig = require('./configuration');

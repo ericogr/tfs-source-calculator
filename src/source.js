@@ -5,7 +5,9 @@ const Element = require('./element');
 
 class Source {
   constructor(options) {
-    this._Connection = new TfsConnectionConfiguration(options).getConnection();
+    this._TfvcApi = new TfsConnectionConfiguration(options)
+      .getConnection()
+      .getTfvcApi();
   }
 
   _createSourceRequest(path = '/') {
@@ -24,9 +26,7 @@ class Source {
   _computeBase(project, path) {
     let req = this._createSourceRequest(path);
 
-    return this._Connection
-      .getTfvcApi()
-      .getItemsBatch(req, project);
+    return this._TfvcApi.getItemsBatch(req, project);
   }
 
   computeSumElements(project, path) {
