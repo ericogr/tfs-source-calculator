@@ -1,5 +1,6 @@
 class SumElements {
-  constructor() {
+  constructor(path) {
+    this._Path = path;
     this._Branches = 0;
     this._Files = 0;
     this._Folders = 0;
@@ -19,6 +20,10 @@ class SumElements {
     if (element.isBranch()) {
       this._Branches++;
     }
+  }
+
+  getPath() {
+    return this._Path;
   }
 
   getFiles() {

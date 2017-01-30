@@ -1,7 +1,11 @@
+'use strict';
+
+const Q = require('q');
 const SumElements = require('./sumElements').SumElements;
 const SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
 const TfsConnectionConfiguration = require('./tfsConnectionConfiguration');
 const Element = require('./element');
+const Branch = require('./branch');
 
 class Source {
   constructor(options) {
@@ -23,20 +27,34 @@ class Source {
     };
   }
 
-  _computeBase(project, path) {
+  _computeBaseElements(project, path) {
     let req = this._createSourceRequest(path);
 
     return this._TfvcApi.getItemsBatch(req, project);
   }
 
-  computeSumElements(project, path) {
+  _computeElements(project, path) {
     return this
-      ._computeBase(project, path)
-      .spread((sources) => {
-        let sumElements = new SumElements();
+    ._computeBaseElements(project, path)
+    .spread((sources) => {
+      let arrElements = [];
 
-        sources.forEach((source) => {
-          let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
+      sources.forEach((source) => {
+        let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
+
+        arrElements.push(element);
+      });
+
+      return arrElements;
+    });
+  }
+
+  computeSumElements(project, path) {
+    return this._computeElements(project, path)
+      .then((elements) => {
+        let sumElements = new SumElements(path);
+
+        elements.forEach((element) => {
           sumElements.process(element);
         });
 
@@ -45,13 +63,11 @@ class Source {
   }
 
   computeSumElementsByFileTypes(project, path) {
-    return this
-      ._computeBase(project, path)
-      .spread((sources) => {
-        let sumElementsByFileTypes = new SumElementsByFileTypes();
+    return this._computeElements(project, path)
+      .then((elements) => {
+        let sumElementsByFileTypes = new SumElementsByFileTypes(path);
 
-        sources.forEach((source) => {
-          let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
+        elements.forEach((element) => {
           sumElementsByFileTypes.process(element);
         });
 
@@ -59,17 +75,13 @@ class Source {
       });
   }
 
-  computeElements(project, path) {
-    let req = this._createSourceRequest(path);
+  computeAllElements(project, path) {
+    return this._computeElements(project, path)
+      .then((elements) => {
+        let sumElements = new SumElements(path);
+        let sumElementsByFileTypes = new SumElementsByFileTypes(path);
 
-    return this
-      ._computeBase(project, path)
-      .spread((sources) => {
-        let sumElements = new SumElements();
-        let sumElementsByFileTypes = new SumElementsByFileTypes();
-
-        sources.forEach((source) => {
-          let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
+        elements.forEach((element) => {
           sumElements.process(element);
           sumElementsByFileTypes.process(element);
         });
@@ -80,6 +92,7 @@ class Source {
         };
       });
   }
+
 }
 
 module.exports = Source;

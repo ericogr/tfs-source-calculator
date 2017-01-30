@@ -1,5 +1,6 @@
 class SumElementsByFileTypes {
-  constructor() {
+  constructor(path) {
+    this.Path = path;
     this._FileMap = new Map();
   }
 
@@ -30,6 +31,10 @@ class SumElementsByFileTypes {
     }
 
     return '';
+  }
+
+  getPath() {
+    return this._Path;
   }
 
   toString() {
