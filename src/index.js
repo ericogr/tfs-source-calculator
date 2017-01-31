@@ -23,19 +23,19 @@ appConfig.read()
     let source = new Source(configuration.connection);
 
     console.info('processing...');
-    return source.computeSumElementsByFileTypes(configuration.project, configuration.path);
-  })
-  .then((computedElements) => {
-    console.info("----------------------------");
-    console.info(computedElements.toString());
-    console.info("----------------------------");
+    return source.computeAllElements(configuration.project, configuration.path);
   })
   // .then((computedElements) => {
   //   console.info("----------------------------");
-  //   console.info(computedElements.sumElements.toString());
-  //   console.info(computedElements.sumElementsByFileTypes.toString());
+  //   console.info(computedElements.toString());
   //   console.info("----------------------------");
   // })
+  .then((computedElements) => {
+    console.info("----------------------------");
+    console.info(computedElements.sumElements.toString());
+    console.info(computedElements.sumElementsByFileTypes.toString());
+    console.info("----------------------------");
+  })
   .catch((err) => {
     console.info("erro:");
     console.info(err);

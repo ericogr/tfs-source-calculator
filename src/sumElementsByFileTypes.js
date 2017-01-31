@@ -19,6 +19,10 @@ class SumElementsByFileTypes {
     }
   }
 
+  get(filetype) {
+    return this._FileMap.get(filetype);
+  }
+
   static getFileType(filename) {
     let tokens = filename.split('.');
 
@@ -37,10 +41,25 @@ class SumElementsByFileTypes {
     return this._Path;
   }
 
+  _sort() {
+    return new Map([...this._FileMap.entries()].sort((a, b) => {
+      if (a[1].getSize() > b[1].getSize()) {
+        return -1;
+      }
+      if (a[1].getSize() < b[1].getSize()) {
+        return 1;
+      }
+
+      return 0;
+    }));
+  }
+
   toString() {
     let output = "";
 
-    for (var [key, value] of this._FileMap) {
+    let mapAsc = this._sort();
+
+    for (let [key, value] of mapAsc) {
       output += `type: ${key}, count: ${value.count()} size: ${value.getSize()}\n`;
     }
 

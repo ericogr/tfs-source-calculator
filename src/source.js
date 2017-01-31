@@ -14,32 +14,13 @@ class Source {
       .getTfvcApi();
   }
 
-  _createSourceRequest(path = '/') {
-    return {
-        includeContentMetadata: true,
-        includeLinks: true,
-        itemDescriptors: [
-            {
-                path: path,
-                recursionLevel: 'Full'
-            }
-        ]
-    };
-  }
-
-  _computeBaseElements(project, path) {
-    let req = this._createSourceRequest(path);
-
-    return this._TfvcApi.getItemsBatch(req, project);
-  }
-
   _computeElements(project, path) {
-    return this
-    ._computeBaseElements(project, path)
-    .spread((sources) => {
+    return this._TfvcApi
+    .getItem(undefined, project, undefined, undefined, path, 'Full')
+    .then((sources) => {
       let arrElements = [];
 
-      sources.forEach((source) => {
+      sources.value.forEach((source) => {
         let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
 
         arrElements.push(element);
