@@ -10,7 +10,7 @@ function ask(question, defaultValue = '') {
   let defer = Q.defer();
 
   rl.question(question, (answer) => {
-    answer = answer || defaultValue;
+    answer = (answer === '!') ? undefined : answer || defaultValue;
 
     return defer.resolve(answer);
   });
@@ -20,10 +20,6 @@ function ask(question, defaultValue = '') {
 
 function askTfsUrl(defaultValue) {
   return ask(`TFS URL [${defaultValue}]: `, defaultValue);
-}
-
-function askProject(defaultValue) {
-  return ask(`Project [${defaultValue}]: `, defaultValue);
 }
 
 function askPath(defaultValue) {
@@ -36,14 +32,6 @@ module.exports.askConfiguration = function(configuration) {
       configuration.connection.url = url;
 
       return configuration;
-    })
-    .then((configuration) => {
-      return askProject(configuration.project)
-        .then((project) => {
-          configuration.project = project;
-
-          return configuration;
-        });
     })
     .then((configuration) => {
       return askPath(configuration.path)

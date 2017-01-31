@@ -11,7 +11,6 @@ const DEFAULT_CONFIG = {
     'username': '',
     'password': ''
   },
-  'project': 'xpto',
   'path': '$/'
 };
 

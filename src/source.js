@@ -9,29 +9,77 @@ const Branch = require('./branch');
 
 class Source {
   constructor(options) {
-    this._TfvcApi = new TfsConnectionConfiguration(options)
-      .getConnection()
-      .getTfvcApi();
+    let connectionConfiguration = new TfsConnectionConfiguration(options).getConnection();
+
+    this._TfvcApi = connectionConfiguration.getTfvcApi();
+    this._CoreApi = connectionConfiguration.getCoreApi();
   }
 
-  _computeElements(project, path) {
-    return this._TfvcApi
-    .getItem(undefined, project, undefined, undefined, path, 'Full')
-    .then((sources) => {
-      let arrElements = [];
+  _computeElementsPathArray(paths) {
+    if (!Array.isArray(paths)) {
+      paths = [paths];
+    }
 
-      sources.value.forEach((source) => {
-        let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
+    let promiseElements = [];
 
-        arrElements.push(element);
-      });
-
-      return arrElements;
+    paths.forEach((path) => {
+      promiseElements.push(this._computeElementsPath(path));
     });
+
+    let allElements = [];
+    return Q.all(promiseElements)
+      .then((elementsArr) => {
+        elementsArr.forEach((elements) => {
+          allElements = allElements.concat(elements);
+        });
+
+        return allElements;
+      });
   }
 
-  computeSumElements(project, path) {
-    return this._computeElements(project, path)
+  _computeElementsPath(path) {
+    return this._TfvcApi
+      .getItem(undefined, undefined, undefined, undefined, path, 'Full')
+      .then((sources) => {
+        let arrElements = [];
+
+        sources.value.forEach((source) => {
+          let element = new Element(source.path, source.isFolder, source.isBranch, source.size, source.changeDate);
+
+          arrElements.push(element);
+        });
+
+        return arrElements;
+      });
+  }
+
+  _computeElements(path) {
+    if (path === undefined) {
+      return this._getAllProjectPaths()
+        .then((paths) => {
+            return this._computeElementsPathArray(paths);
+        });
+    }
+
+    return this._computeElementsPath(path);
+  }
+
+  _getAllProjectPaths() {
+    let paths = [];
+
+    return this._CoreApi
+      .getProjects()
+      .then((projects) => {
+        projects.forEach((project) => {
+          paths.push(`$/${project.name}`);
+        });
+
+        return paths;
+      });
+  }
+
+  computeSumElements(path) {
+    return this._computeElements(path)
       .then((elements) => {
         let sumElements = new SumElements(path);
 
@@ -43,8 +91,8 @@ class Source {
       });
   }
 
-  computeSumElementsByFileTypes(project, path) {
-    return this._computeElements(project, path)
+  computeSumElementsByFileTypes(path) {
+    return this._computeElements(path)
       .then((elements) => {
         let sumElementsByFileTypes = new SumElementsByFileTypes(path);
 
@@ -56,8 +104,8 @@ class Source {
       });
   }
 
-  computeAllElements(project, path) {
-    return this._computeElements(project, path)
+  computeAllElements(path) {
+    return this._computeElements(path)
       .then((elements) => {
         let sumElements = new SumElements(path);
         let sumElementsByFileTypes = new SumElementsByFileTypes(path);

@@ -23,12 +23,13 @@ appConfig.read()
     let source = new Source(configuration.connection);
 
     console.info('processing...');
-    return source.computeAllElements(configuration.project, configuration.path);
+    return source.computeAllElements(configuration.path);
+    //return source._getProjectPaths('$/ALM');
   })
   // .then((computedElements) => {
-  //   console.info("----------------------------");
-  //   console.info(computedElements.toString());
-  //   console.info("----------------------------");
+  //   console.info("x----------------------------");
+  //   console.info(computedElements);
+  //   console.info("x----------------------------");
   // })
   .then((computedElements) => {
     console.info("----------------------------");
