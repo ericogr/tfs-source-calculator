@@ -10,9 +10,7 @@ function ask(question, defaultValue = '') {
   let defer = Q.defer();
 
   rl.question(question, (answer) => {
-    answer = (answer === '!') ? undefined : answer || defaultValue;
-
-    return defer.resolve(answer);
+    return defer.resolve(answer || defaultValue);
   });
 
   return defer.promise;

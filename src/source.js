@@ -3,41 +3,17 @@
 const Q = require('q');
 const SumElements = require('./sumElements').SumElements;
 const SumElementsByFileTypes = require('./sumElementsByFileTypes').SumElementsByFileTypes;
-const TfsConnectionConfiguration = require('./tfsConnectionConfiguration');
+const BaseApi = require('./baseApi');
 const Element = require('./element');
 const Branch = require('./branch');
 
-class Source {
+class Source extends BaseApi {
   constructor(options) {
-    let connectionConfiguration = new TfsConnectionConfiguration(options).getConnection();
-
-    this._TfvcApi = connectionConfiguration.getTfvcApi();
-    this._CoreApi = connectionConfiguration.getCoreApi();
+    super(options);
+    this._TfvcApi = this._Connection.getTfvcApi();
   }
 
-  _computeElementsPathArray(paths) {
-    if (!Array.isArray(paths)) {
-      paths = [paths];
-    }
-
-    let promiseElements = [];
-
-    paths.forEach((path) => {
-      promiseElements.push(this._computeElementsPath(path));
-    });
-
-    let allElements = [];
-    return Q.all(promiseElements)
-      .then((elementsArr) => {
-        elementsArr.forEach((elements) => {
-          allElements = allElements.concat(elements);
-        });
-
-        return allElements;
-      });
-  }
-
-  _computeElementsPath(path) {
+  getElements(path) {
     return this._TfvcApi
       .getItem(undefined, undefined, undefined, undefined, path, 'Full')
       .then((sources) => {
@@ -53,33 +29,8 @@ class Source {
       });
   }
 
-  _computeElements(path) {
-    if (path === undefined) {
-      return this._getAllProjectPaths()
-        .then((paths) => {
-            return this._computeElementsPathArray(paths);
-        });
-    }
-
-    return this._computeElementsPath(path);
-  }
-
-  _getAllProjectPaths() {
-    let paths = [];
-
-    return this._CoreApi
-      .getProjects()
-      .then((projects) => {
-        projects.forEach((project) => {
-          paths.push(`$/${project.name}`);
-        });
-
-        return paths;
-      });
-  }
-
   computeSumElements(path) {
-    return this._computeElements(path)
+    return this.getElements(path)
       .then((elements) => {
         let sumElements = new SumElements(path);
 
@@ -92,7 +43,7 @@ class Source {
   }
 
   computeSumElementsByFileTypes(path) {
-    return this._computeElements(path)
+    return this.getElements(path)
       .then((elements) => {
         let sumElementsByFileTypes = new SumElementsByFileTypes(path);
 
@@ -100,12 +51,15 @@ class Source {
           sumElementsByFileTypes.process(element);
         });
 
-        return sumElementsByFileTypes;
+        return {
+          'path': path,
+          'sumElementsByFileTypes': sumElementsByFileTypes
+        };
       });
   }
 
   computeAllElements(path) {
-    return this._computeElements(path)
+    return this.getElements(path)
       .then((elements) => {
         let sumElements = new SumElements(path);
         let sumElementsByFileTypes = new SumElementsByFileTypes(path);
@@ -116,6 +70,7 @@ class Source {
         });
 
         return {
+          'path': path,
           'sumElements': sumElements,
           'sumElementsByFileTypes': sumElementsByFileTypes
         };
